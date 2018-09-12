@@ -1,8 +1,8 @@
 package main
 
 import (
-	"mouseCtrl/lib/controller"
 	"mouseCtrl/lib/handler"
+	"mouseCtrl/lib/utils"
 	"mouseCtrl/lib/web"
 )
 
@@ -15,7 +15,7 @@ func main() {
 		web.StartAgent(WebPort)
 	}()
 
-	mouseController := controller.NewMouseController()
+	mouseController := utils.NewMouseController()
 	mouseEventHandler := handler.NewMouseEventHandler(mouseController, WsPath, WsPort)
 	mouseEventHandler.Start()
 }

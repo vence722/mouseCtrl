@@ -2,21 +2,22 @@ package handler
 
 import (
 	"fmt"
-	"mouseCtrl/lib/controller"
 	"net/http"
 	"strings"
+
+	"mouseCtrl/lib/utils"
 
 	"github.com/gorilla/websocket"
 	"github.com/vence722/convert"
 )
 
 type MouseEventHandler struct {
-	mouseController *controller.MouseController
+	mouseController *utils.MouseController
 	path            string
 	port            int
 }
 
-func NewMouseEventHandler(mouseController *controller.MouseController, path string, port int) *MouseEventHandler {
+func NewMouseEventHandler(mouseController *utils.MouseController, path string, port int) *MouseEventHandler {
 	return &MouseEventHandler{
 		mouseController: mouseController,
 		path:            path,
@@ -50,8 +51,6 @@ func (this *MouseEventHandler) handler(rsp http.ResponseWriter, req *http.Reques
 		for {
 			// receive data
 			recv := <-ch
-
-			fmt.Println("recv=", recv)
 
 			// handle data
 			if "ld" == recv {
