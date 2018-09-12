@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html style="height: 100%;">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<title>Mouse Controller</title>
+	<script type="text/javascript">
+	
+		// disable context menu
+		document.documentElement.style.webkitTouchCallout = "none";
+		// disable document touch event
+		// document.ontouchmove = function(e){ e.preventDefault(); };
+	
+		var remote = window.location.hostname + ":7777";
+		var ws = new WebSocket("ws://" + remote + "/mouse");	 
+		  
+		var lastPoint = null;
+		var lastCenter = null;
+
+		function touch (event){  
+		    var event = event || window.event;   
+			
+			if (event.touches.length === 1) {
+				switch(event.type){  
+					case "touchstart":  
+						lastPoint = {x:event.touches[0].clientX, y:event.touches[0].clientY};
+						break;  
+					case "touchend":  
+						lastPoint = null;
+						break;  
+					case "touchmove":  
+						event.preventDefault();
+						var mx = event.touches[0].clientX-lastPoint.x;
+						var my = event.touches[0].clientY-lastPoint.y;
+						lastPoint = {x:event.touches[0].clientX, y:event.touches[0].clientY};
+						ws.send(mx + "," + my);
+						break;  
+				}
+			} else if (event.touches.length === 2) {
+				switch(event.type){ 
+					case "touchstart":
+						lastCenter = {
+							x: (event.touches[0].clientX + event.touches[1].clientX) / 2,
+							y: (event.touches[0].clientY + event.touches[1].clientY) / 2
+						};
+						break;
+					case "touchend":
+						lastCenter = null;
+						break;
+					case "touchmove":
+						event.preventDefault();
+						var cx = (event.touches[0].clientX + event.touches[1].clientX) / 2;
+						var cy = (event.touches[0].clientY + event.touches[1].clientY) / 2;
+						var vx = cx - lastCenter.x;
+						var vy = cy - lastCenter.y;
+						lastCenter = {
+							x: cx,
+							y: cy
+						};
+						ws.send("sc," + vx + "," + vy);
+						break;
+				}
+			}
+		}  
+		
+		function leftButtonHandler(evt){
+			if(evt == "down"){
+				ws.send("ld");
+			} else if(evt == "up"){
+				ws.send("lu");
+			}
+		}
+		
+		function rightButtonHandler(evt){
+			if(evt == "down"){
+				ws.send("rd");
+			} else if(evt == "up"){
+				ws.send("ru");
+			}
+		}
+		
+		function init(){
+			// touch panel event
+			var panel = document.getElementById("touchPanel");
+			panel.addEventListener('touchstart',touch, false);  
+			panel.addEventListener('touchmove',touch, false);  
+			panel.addEventListener('touchend',touch, false);
+			
+			// left button event
+			var leftButton = document.getElementById("leftButton");
+			leftButton.onmousedown = function(){leftButtonHandler("down")};
+			leftButton.onmouseup = function(){leftButtonHandler("up")};
+			
+			// right button event
+			var rightButton = document.getElementById("rightButton");
+			rightButton.onmousedown = function(){rightButtonHandler("down")};
+			rightButton.onmouseup = function(){rightButtonHandler("up")};
+		}	
+		
+	</script>
+</head>
+
+<body onload="init()" style="height: 100%;">
+	<div id="touchPanel" style="width:100%;height:80%;border:1px red solid"></div>
+	<div id="buttons" style="width:100%;height:20%;border:1px blue solid">
+		<input id="leftButton" type="button" value="Left Button" style="display:inline;width:49%;height:100%;border: none" />
+		<input id="rightButton" type="button" value="Right Button" style="display:inline;width:49%;height:100%;border: none" />
+	</div>
+</body>
+
+</html>
