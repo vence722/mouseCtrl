@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html style="height: 100%;">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<title>Mouse Controller</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script type="text/javascript">
+		function init() {
+			displayQRCodePage();
+		}
+		// ============Authentication Page=================
+		function displayQRCodePage() {
+			$("#containerQRCode").css("display", "block");
+			$("#containerCtrl").css("display", "none");
+			stopTimer();
+			checkAuthentication();
+			$.get("/qrCode", function (data) {
+				$("#QRCode").append("<img src='data:image/jpeg;base64," + data + "'/>")
+			});
+		}
+		function checkAuthentication() {
+			$.get("/auth", function (data) {
+				if (data === 'ok') {
+					displayConnectionPage();
+				} else {
+					var checkConnected = setInterval(function () {
+						$.get("/auth", function (data) {
+							if (data === 'ok') {
+								clearInterval(checkConnected);
+								displayConnectionPage();
+							}
+						});
+					}, 1000);
+				}
+			});	
+		}
+		// ================================================
+
+		// ==============Connection Page===================
+		function displayConnectionPage() {
+			$("#containerQRCode").css("display", "none");
+			$("#containerCtrl").css("display", "block");
+			startTimer();
+		}
+		var timer;
+		function startTimer() {
+			var startTime = new Date().getTime();
+			timer = setInterval(function () {
+				var diffSec = parseInt(new Date().getTime() - startTime) / 1000;
+				var seconds = lpad(`${parseInt(diffSec % 60)}`, "0", 2);
+				var minutes = lpad(`${parseInt((diffSec / 60) % 60)}`, "0", 2);
+				var hours = lpad(`${parseInt((diffSec / 3600))}`, "0", 2);
+				$("#connectionTime").html(`${hours}:${minutes}:${seconds}`);
+			}, 1000);
+		}
+		function stopTimer() {
+			if (timer) {
+				clearInterval(timer);
+				timer = null;
+				$("#connectionTime").html('00:00:00');
+			}
+		}
+		function lpad(str, padString, length) {
+			while (str.length < length)
+				str = padString + str;
+			return str;
+		}
+		// ==============================================
+	</script>
+</head>
+<body onload="init()">
+	<div id="containerQRCode">
+		<h1>Please scan this QRCode</h1>
+		<h1>Then you can control the mouse :)</h1>
+		<div id="QRCode"></div>
+	</div>
+	<div id="containerCtrl" style="display:none">
+		<h1>Successfully connected!</h1>
+		<h2>Connection time: <span id="connectionTime">00:00:00</span></h1>
+		<button style="width:200px;height:30px;margin-left:50px;">Disconnect</button>
+	</div>
+</body>
