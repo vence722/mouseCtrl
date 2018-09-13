@@ -4,7 +4,8 @@ A cross-platform tool for remote controlling your mouse from another device (mob
 ## Installation
 1. `git clone https://github.com/vence722/mouseCtrl`
 2. `cd mouseCtrl`
-3. `go build`
+3. `sh install.sh`
+4. `go build`
 
 ## How to use
 1. `./mouseCtrl`
