@@ -8,8 +8,12 @@ import (
 
 	"github.com/vence722/convert"
 
+	"mouseCtrl/lib/handler"
 	"mouseCtrl/lib/utils"
 )
+
+// mouse event controller
+var mouseEventHandler *handler.MouseEventHandler
 
 // authentication token
 var AuthToken string = ""
@@ -17,12 +21,26 @@ var AuthToken string = ""
 // connected flag
 var IsConnected bool = false
 
-func StartAgent(port int) {
-	http.HandleFunc("/", indexHandler)
-	http.HandleFunc("/qrCode", qrCodeHandler(port))
-	http.HandleFunc("/auth", authHandler)
-	http.HandleFunc("/control", mouseCtrlHandler)
-	http.ListenAndServe(":"+convert.Int2Str(port), nil)
+func StartAgent(webPort int, wsPath string, wsPort int) {
+	// start mouse controller
+	go func() {
+		mouseController := utils.NewMouseController()
+		mouseEventHandler = handler.NewMouseEventHandler(mouseController, wsPath, wsPort)
+		mouseEventHandler.Start()
+	}()
+
+	// start web agent
+	go func() {
+		http.HandleFunc("/", indexHandler)
+		http.HandleFunc("/qrCode", qrCodeHandler(webPort))
+		http.HandleFunc("/auth", authHandler)
+		http.HandleFunc("/disconnect", disconnectHandler)
+		http.HandleFunc("/control", mouseCtrlHandler)
+		http.ListenAndServe(":"+convert.Int2Str(webPort), nil)
+	}()
+
+	forever := make(chan bool)
+	<-forever
 }
 
 func indexHandler(rsp http.ResponseWriter, req *http.Request) {
@@ -50,6 +68,15 @@ func authHandler(rsp http.ResponseWriter, req *http.Request) {
 	} else {
 		rsp.Write([]byte("no"))
 	}
+}
+
+func disconnectHandler(rsp http.ResponseWriter, req *http.Request) {
+	if IsConnected {
+		AuthToken = ""
+		IsConnected = false
+		mouseEventHandler.CloseCurrentConn()
+	}
+	rsp.Write([]byte("ok"))
 }
 
 func mouseCtrlHandler(rsp http.ResponseWriter, req *http.Request) {

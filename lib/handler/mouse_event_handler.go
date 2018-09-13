@@ -15,6 +15,7 @@ type MouseEventHandler struct {
 	mouseController *utils.MouseController
 	path            string
 	port            int
+	ws              *websocket.Conn
 }
 
 func NewMouseEventHandler(mouseController *utils.MouseController, path string, port int) *MouseEventHandler {
@@ -30,6 +31,11 @@ func (this *MouseEventHandler) Start() {
 	http.ListenAndServe(":"+convert.Int2Str(this.port), nil)
 }
 
+func (this *MouseEventHandler) CloseCurrentConn() {
+	this.ws.Close()
+	this.ws = nil
+}
+
 func (this *MouseEventHandler) handler(rsp http.ResponseWriter, req *http.Request) {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -39,6 +45,7 @@ func (this *MouseEventHandler) handler(rsp http.ResponseWriter, req *http.Reques
 		},
 	}
 	ws, err := upgrader.Upgrade(rsp, req, nil)
+	this.ws = ws
 	if err != nil {
 		fmt.Println(err)
 		return

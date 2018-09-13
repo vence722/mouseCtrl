@@ -16,7 +16,7 @@
 			stopTimer();
 			checkAuthentication();
 			$.get("/qrCode", function (data) {
-				$("#QRCode").append("<img src='data:image/jpeg;base64," + data + "'/>")
+				$("#QRCode").html("<img src='data:image/jpeg;base64," + data + "'/>")
 			});
 		}
 		function checkAuthentication() {
@@ -26,7 +26,7 @@
 				} else {
 					var checkConnected = setInterval(function () {
 						$.get("/auth", function (data) {
-							if (data === 'ok') {
+							if (data === "ok") {
 								clearInterval(checkConnected);
 								displayConnectionPage();
 							}
@@ -61,6 +61,14 @@
 				$("#connectionTime").html('00:00:00');
 			}
 		}
+		function disconnect() {
+			$.get("/disconnect", function (data) {
+				if (data === "ok") {
+					stopTimer();
+					displayQRCodePage();
+				}
+			});
+		}
 		function lpad(str, padString, length) {
 			while (str.length < length)
 				str = padString + str;
@@ -78,6 +86,6 @@
 	<div id="containerCtrl" style="display:none">
 		<h1>Successfully connected!</h1>
 		<h2>Connection time: <span id="connectionTime">00:00:00</span></h1>
-		<button style="width:200px;height:30px;margin-left:50px;">Disconnect</button>
+		<button style="width:200px;height:30px;margin-left:50px;" onclick="disconnect()">Disconnect</button>
 	</div>
 </body>
