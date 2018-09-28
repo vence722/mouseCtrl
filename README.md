@@ -2,7 +2,7 @@
 A cross-platform tool for remote controlling your mouse from another device (mobile phone for example)
 
 ## Prerequisite
-Please make sure you have go 1.8 installed.
+Please make sure you have go 1.8 or above installed.
 
 ## Installation
 1. `git clone https://github.com/vence722/mouseCtrl`
